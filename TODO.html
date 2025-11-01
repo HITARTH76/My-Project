@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced To-Do App</title>
+<style>
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: #f5f6fa;
+display: flex;
+justify-content: center;
+align-items: flex-start;
+padding: 50px 0;
+}
+.todo-container {
+background: #fff;
+padding: 30px;
+width: 450px;
+border-radius: 15px;
+box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+h2 {
+text-align: center;
+color: #2f3640;
+margin-bottom: 20px;
+}
+input[type="text"], select {
+width: 100%;
+padding: 10px 15px;
+border-radius: 8px;
+border: 2px solid #dcdde1;
+margin-bottom: 10px;
+font-size: 16px;
+}
+button.add-btn {
+width: 100%;
+padding: 10px;
+background: #44bd32;
+color: #fff;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-weight: bold;
+font-size: 16px;
+transition: 0.3s;
+}
+button.add-btn:hover {
+background: #4cd137;
+}
+.filters {
+display: flex;
+justify-content: space-between;
+margin: 15px 0;
+}
+.filters button {
+flex: 1;
+margin: 0 5px;
+padding: 8px 0;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+background: #7f8fa6;
+color: white;
+font-weight: bold;
+transition: 0.3s;
+}
+.filters button.active { background: #44bd32; }
+ul {
+list-style: none;
+padding: 0;
+margin-top: 20px;
+}
+li {
+background: #f1f2f6;
+padding: 12px 15px;
+margin-bottom: 10px;
+border-radius: 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-left: 5px solid transparent;
+}
+li.high { border-left-color: #e84118; }
+li.medium { border-left-color: #fbc531; }
+li.low { border-left-color: #44bd32; }
+li.completed {
+text-decoration: line-through;
+color: #7f8fa6;
+opacity: 0.7;
+}
+.actions button {
+margin-left: 5px;
+border: none;
+background: transparent;
+cursor: pointer;
+font-size: 16px;
+}
+.actions button.edit { color: #487eb0; }
+.actions button.delete { color: #e84118; }
+.actions button.complete { color: #44bd32; }
+</style>
+</head>
+<body>
+<div class="todo-container">
+<h2>Advanced To-Do List</h2>
+<input type="text" id="taskInput" placeholder="Add a new task">
+<select id="prioritySelect">
+<option value="low">Low Priority</option>
+<option value="medium">Medium Priority</option>
+<option value="high">High Priority</option>
+</select>
+<button class="add-btn" onclick="addTask()">Add Task</button>
+<div class="filters">
+<button class="active" onclick="setFilter('all')">All</button>
+<button onclick="setFilter('pending')">Pending</button>
+<button onclick="setFilter('completed')">Completed</button>
+</div>
+<ul id="taskList"></ul>
+</div>
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let filter = "all";
+function saveTasks() {
+localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+function addTask() {
+const input = document.getElementById("taskInput");
+const priority = document.getElementById("prioritySelect").value;
+const text = input.value.trim();
+if(text === "") return;
+tasks.push({ text, completed: false, priority });
+input.value = "";
+renderTasks();
+saveTasks();
+}
+function renderTasks() {
+const list = document.getElementById("taskList");
+list.innerHTML = "";
+tasks.forEach((task, index) => {
+if(filter === "completed" && !task.completed) return;
+if(filter === "pending" && task.completed) return;
+const li = document.createElement("li");
+li.className = `${task.completed ? "completed" : ""} ${task.priority}`;
+li.innerHTML = `
+${task.text}
+<div class="actions">
+<button class="complete" onclick="toggleComplete(${index})">&#10004;</button>
+<button class="edit" onclick="editTask(${index})">&#9998;</button>
+<button class="delete" onclick="deleteTask(${index})">&#10006;</button>
+</div>
+`;
+list.appendChild(li);
+});
+updateFilterButtons();
+}
+function toggleComplete(index) {
+tasks[index].completed = !tasks[index].completed;
+renderTasks();
+saveTasks();
+}
+function deleteTask(index) {
+tasks.splice(index, 1);
+renderTasks();
+saveTasks();
+}
+function editTask(index) {
+const newText = prompt("Edit task:", tasks[index].text);
+if(newText !== null && newText.trim() !== "") {
+tasks[index].text = newText.trim();
+renderTasks();
+saveTasks();
+}
+}
+function setFilter(type) {
+filter = type;
+renderTasks();
+}
+function updateFilterButtons() {
+const buttons = document.querySelectorAll(".filters button");
+buttons.forEach(btn => btn.classList.remove("active"));
+if(filter === "all") buttons[0].classList.add("active");
+if(filter === "pending") buttons[1].classList.add("active");
+if(filter === "completed") buttons[2].classList.add("active");
+}
+renderTasks();
+</script>
+</body>
+</html>
